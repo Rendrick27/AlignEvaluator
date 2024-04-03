@@ -1,0 +1,9 @@
+channels:
+    - conda-forge
+    - bioconda
+dependencies:
+    - mafft =7.520
+    - clustalo =1.2.4
+    - modeltest-ng =0.1.7
+    - raxml-ng =1.2.0
+    - toytree

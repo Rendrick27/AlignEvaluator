@@ -17,39 +17,39 @@ rule all:
         # expand("iqtree/{sample}/clustal_omega/clustal_omega.log", sample=sample_names),
         # expand("iqtree/{sample}/Muscle/Muscle.log", sample=sample_names)
 
-# Alignment rules
-# input[0]
-# rule mafft:
-#     input:
-#         "dataset/{sample}.fasta"
-#     output:
-#         "results/mafft/{sample}/{sample}fileAligned.fasta"
-#     conda:
-#         "envs/yamlfile.yaml"
-#     params:
-#         threads=multiprocessing.cpu_count() - 2
-#     shell:
-#         """
-#         start_time=$(date +%s%3N)
-#         mafft --auto --thread -{params.threads} {input} > {output}
-#         end_time=$(date +%s%3N)
-#         execution_time=$((end_time - start_time))
-#         echo "Mafft = $execution_time milliseconds" > results/mafft/{wildcards.sample}/time.txt
-#         """
+#Alignment rules
+rule mafft:
+    input:
+        "dataset/{sample}.fasta"
+    output:
+        "results/mafft/{sample}/{sample}fileAligned.fasta"
+    conda:
+        "envs/yamlfile.yaml"
+    params:
+        threads=multiprocessing.cpu_count()
+    shell:
+        """
+        start_time=$(date +%s%3N)
+        mafft --auto --thread -{params.threads} {input} > {output}
+        end_time=$(date +%s%3N)
+        execution_time=$((end_time - start_time))
+        echo "Mafft = $execution_time milliseconds" > results/mafft/{wildcards.sample}/time.txt
+        """
 
 rule Clustal_Omega:
     input:
+        "results/mafft/{sample}/{sample}fileAligned.fasta",
         "dataset/{sample}.fasta"
     output:
         "results/clustal_omega/{sample}/{sample}fileAligned.fasta"
     conda:
         "envs/yamlfile.yaml"
     params:
-        threads=multiprocessing.cpu_count() - 2
+        threads=multiprocessing.cpu_count()
     shell:
         """
         start_time=$(date +%s%3N)
-        clustalo -i {input} -o {output} --auto --threads={params.threads}
+        clustalo -i {input[1]} -o {output} --auto --threads={params.threads}
         end_time=$(date +%s%3N)
         execution_time=$((end_time - start_time))
         echo "clustal_omega = $execution_time milliseconds" > results/clustal_omega/{wildcards.sample}/time.txt
@@ -64,7 +64,7 @@ rule Muscle:
     conda:
         "envs/yamlfile.yaml"
     params:
-        threads=multiprocessing.cpu_count() - 2
+        threads=multiprocessing.cpu_count()
     shell:
         """
         start_time=$(date +%s%3N)

@@ -151,66 +151,66 @@ rule obtain_best_AICc_model_Muscle:
     shell:
         "grep 'Best model according to AICc' -A 2 {input.data} | tail -n 1 | sed 's/^.* //' > {output}"
 
-# # Maximum likelihood tree generation rules
-# rule maximum_likelihood_tree_step_1_mafft:
-#     input:
-#         "results/mafft/{sample}/{sample}Model.txt",
-#         "results/mafft/{sample}/{sample}fileAligned.fasta"
-#     output:
-#         "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.bestTree",
-#         "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.bestModel",
-#         "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.mlTrees",
-#         "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.rba",
-#         "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.startTree"
-#     conda:
-#         "envs/yamlfile.yaml"
-#     params:
-#         threads=multiprocessing.cpu_count() // 4
-#     shell:
-#         """
-#         model=$(cat {input[0]})
-#         raxml-ng --msa {input[1]} --model $model --threads {params.threads} --seed 333 --tree pars{{100}},rand{{100}}
-#         """
+# Maximum likelihood tree generation rules
+rule maximum_likelihood_tree_step_1_mafft:
+    input:
+        model="results/mafft/{sample}/{sample}Model.txt",
+        msa="results/mafft/{sample}/{sample}fileAligned.fasta"
+    output:
+        "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.bestTree",
+        "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.bestModel",
+        "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.mlTrees",
+        "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.rba",
+        "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.startTree"
+    conda:
+        "envs/yamlfile.yaml"
+    params:
+        threads=multiprocessing.cpu_count()
+    shell:
+        """
+        model=$(cat {input.model})
+        raxml-ng --msa {input.msa} --model $model --threads {params.threads} --seed 333 --tree pars{{100}},rand{{100}}
+        """
 
-# rule maximum_likelihood_tree_step_1_clustal_omega:
-#     input:
-#         "results/clustal_omega/{sample}/{sample}Model.txt",
-#         "results/clustal_omega/{sample}/{sample}fileAligned.fasta"
-#     output:
-#         "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.bestTree",
-#         "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.bestModel",
-#         "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.mlTrees",
-#         "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.rba",
-#         "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.startTree"
-#     conda:
-#         "envs/yamlfile.yaml"
-#     params:
-#         threads=multiprocessing.cpu_count() // 4
-#     shell:
-#         """
-#         model=$(cat {input[0]})
-#         raxml-ng --msa {input[1]} --model $model --threads {params.threads} --seed 333 --tree pars{{100}},rand{{100}}
-#         """
+rule maximum_likelihood_tree_step_1_clustal_omega:
+    input:
+        model="results/clustal_omega/{sample}/{sample}Model.txt",
+        msa="results/clustal_omega/{sample}/{sample}fileAligned.fasta"
+    output:
+        "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.bestTree",
+        "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.bestModel",
+        "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.mlTrees",
+        "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.rba",
+        "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.startTree"
+    conda:
+        "envs/yamlfile.yaml"
+    params:
+        threads=multiprocessing.cpu_count()
+    shell:
+        """
+        model=$(cat {input.model})
+        raxml-ng --msa {input.msa} --model $model --threads {params.threads} --seed 333 --tree pars{{100}},rand{{100}}
+        """
 
-# rule maximum_likelihood_tree_step_1_Muscle:
-#     input:
-#         "results/Muscle/{sample}/{sample}Model.txt",
-#         "results/Muscle/{sample}/{sample}fileAligned.fasta"
-#     output:
-#         "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.bestTree",
-#         "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.bestModel",
-#         "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.mlTrees",
-#         "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.rba",
-#         "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.startTree"
-#     conda:
-#         "envs/yamlfile.yaml"
-#     params:
-#         threads=multiprocessing.cpu_count() // 4
-#     shell:
-#         """
-#         model=$(cat {input[0]})
-#         raxml-ng --msa {input[1]} --model $model --threads {params.threads} --seed 333 --tree pars{{100}},rand{{100}}
-#         """
+rule maximum_likelihood_tree_step_1_Muscle:
+    input:
+        model="results/Muscle/{sample}/{sample}Model.txt",
+        msa="results/Muscle/{sample}/{sample}fileAligned.fasta"
+    output:
+        "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.bestTree",
+        "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.bestModel",
+        "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.mlTrees",
+        "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.rba",
+        "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.startTree"
+    conda:
+        "envs/yamlfile.yaml"
+    params:
+        threads=multiprocessing.cpu_count()
+    shell:
+        """
+        model=$(cat {input.model})
+        raxml-ng --msa {input.msa} --model $model --threads {params.threads} --seed 333 --tree pars{{100}},rand{{100}}
+        """
 
 # # Bootstrap replicates generation rules
 # rule maximum_likelihood_tree_step_2_mafft:
@@ -224,7 +224,7 @@ rule obtain_best_AICc_model_Muscle:
 #     conda:
 #         "envs/yamlfile.yaml"
 #     params:
-#         threads=multiprocessing.cpu_count() // 4,
+#         threads=multiprocessing.cpu_count(),
 #         bootstrap_trees=1000
 #     shell: 
 #         """
@@ -243,7 +243,7 @@ rule obtain_best_AICc_model_Muscle:
 #     conda:
 #         "envs/yamlfile.yaml"
 #     params:
-#         threads=multiprocessing.cpu_count() // 4,
+#         threads=multiprocessing.cpu_count(),
 #         bootstrap_trees=1000
 #     shell: 
 #         """
@@ -262,7 +262,7 @@ rule obtain_best_AICc_model_Muscle:
 #     conda:
 #         "envs/yamlfile.yaml"
 #     params:
-#         threads=multiprocessing.cpu_count() // 4,
+#         threads=multiprocessing.cpu_count(),
 #         bootstrap_trees=1000
 #     shell: 
 #         """
@@ -280,7 +280,7 @@ rule obtain_best_AICc_model_Muscle:
 #     conda:
 #         "envs/yamlfile.yaml"
 #     params:
-#         threads=multiprocessing.cpu_count() // 4
+#         threads=multiprocessing.cpu_count()
 #     shell:
 #         "raxml-ng --support --tree {input[0]} --bs-trees {input[1]} --threads {params.threads}"
         
@@ -294,7 +294,7 @@ rule obtain_best_AICc_model_Muscle:
 #     conda:
 #         "envs/yamlfile.yaml"
 #     params:
-#         threads=multiprocessing.cpu_count() // 4
+#         threads=multiprocessing.cpu_count()
 #     shell:
 #         "raxml-ng --support --tree {input[0]} --bs-trees {input[1]} --threads {params.threads}"
 
@@ -308,7 +308,7 @@ rule obtain_best_AICc_model_Muscle:
 #     conda:
 #         "envs/yamlfile.yaml"
 #     params:
-#         threads=multiprocessing.cpu_count() // 4
+#         threads=multiprocessing.cpu_count()
 #     shell:
 #         "raxml-ng --support --tree {input[0]} --bs-trees {input[1]} --threads {params.threads}"
 

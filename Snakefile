@@ -332,7 +332,7 @@ rule build_tree_mafft:
 
 rule build_clustal_omega:
     input:
-        previous="results/mafft/{sample}/tree/{sample}Tree.svg"
+        previous="results/mafft/{sample}/tree/{sample}Tree.svg",
         tree="results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.support"
     output:
         img="results/clustal_omega/{sample}/tree/{sample}Tree.svg"
@@ -341,7 +341,7 @@ rule build_clustal_omega:
 
 rule build_Muscle:
     input:
-        previous="results/clustal_omega/{sample}/tree/{sample}Tree.svg"
+        previous="results/clustal_omega/{sample}/tree/{sample}Tree.svg",
         tree="results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.support"
     output:
         img="results/Muscle/{sample}/tree/{sample}Tree.svg"

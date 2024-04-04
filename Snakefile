@@ -9,7 +9,7 @@ sample_names = [os.path.splitext(os.path.basename(file))[0] for file in glob.glo
 # Define rule to generate all desired outputs
 rule all:
     input:
-        expand("results/Muscle/{sample}/{sample}fileAligned.fasta", sample=sample_names)
+        expand("results/Muscle/{sample}/{sample}fileAligned.txt", sample=sample_names)
         # expand("results/mafft/{sample}/tree/{sample}Tree.svg", sample=sample_names),    
         # expand("results/clustal_omega/{sample}/tree/{sample}Tree.svg", sample=sample_names),
         # expand("results/Muscle/{sample}/tree/{sample}Tree.svg", sample=sample_names),
@@ -20,7 +20,7 @@ rule all:
 #Alignment rules
 rule mafft:
     input:
-        "dataset/{sample}.fasta"
+        data="dataset/{sample}.fasta"
     output:
         "results/mafft/{sample}/{sample}fileAligned.fasta"
     conda:
@@ -30,7 +30,7 @@ rule mafft:
     shell:
         """
         start_time=$(date +%s%3N)
-        mafft --auto --thread -{params.threads} {input} > {output}
+        mafft --auto --thread -{params.threads} {input.data} > {output}
         end_time=$(date +%s%3N)
         execution_time=$((end_time - start_time))
         echo "Mafft = $execution_time milliseconds" > results/mafft/{wildcards.sample}/time.txt
@@ -38,8 +38,8 @@ rule mafft:
 
 rule Clustal_Omega:
     input:
-        "results/mafft/{sample}/{sample}fileAligned.fasta",
-        "dataset/{sample}.fasta"
+        previous="results/mafft/{sample}/{sample}fileAligned.fasta",
+        data="dataset/{sample}.fasta"
     output:
         "results/clustal_omega/{sample}/{sample}fileAligned.fasta"
     conda:
@@ -49,7 +49,7 @@ rule Clustal_Omega:
     shell:
         """
         start_time=$(date +%s%3N)
-        clustalo -i {input[1]} -o {output} --auto --threads={params.threads}
+        clustalo -i {input.data} -o {output} --auto --threads={params.threads}
         end_time=$(date +%s%3N)
         execution_time=$((end_time - start_time))
         echo "clustal_omega = $execution_time milliseconds" > results/clustal_omega/{wildcards.sample}/time.txt
@@ -57,8 +57,8 @@ rule Clustal_Omega:
 
 rule Muscle:
     input:
-        "results/clustal_omega/{sample}/{sample}fileAligned.fasta",
-        "dataset/{sample}.fasta"
+        previous="results/clustal_omega/{sample}/{sample}fileAligned.fasta",
+        data="dataset/{sample}.fasta"
     output:
         "results/Muscle/{sample}/{sample}fileAligned.fasta"
     conda:
@@ -68,57 +68,60 @@ rule Muscle:
     shell:
         """
         start_time=$(date +%s%3N)
-        muscle -align {input[1]} -output {output} -threads {params.threads}
+        muscle -align {input.data} -output {output} -threads {params.threads}
         end_time=$(date +%s%3N)
         execution_time=$((end_time - start_time))
         echo "Muscle = $execution_time milliseconds" > results/Muscle/{wildcards.sample}/time.txt
         """
 
-# # Best AICc model selection rules
-# rule best_AICc_model_mafft:
-#     input:
-#         "results/mafft/{sample}/{sample}fileAligned.fasta"
-#     output:
-#         "results/mafft/{sample}/{sample}fileAligned.txt",
-#         "results/mafft/{sample}/{sample}fileAligned.fasta.ckp",
-#         "results/mafft/{sample}/{sample}fileAligned.fasta.log",
-#         "results/mafft/{sample}/{sample}fileAligned.fasta.out",
-#         "results/mafft/{sample}/{sample}fileAligned.fasta.topos",
-#         "results/mafft/{sample}/{sample}fileAligned.fasta.tree"
-#     conda:
-#         "envs/yamlfile.yaml"
-#     shell:
-#         "modeltest-ng -i {input} -t ml > {output}"  
+# Best AICc model selection rules
+rule best_AICc_model_mafft:
+    input:
+        previous="results/Muscle/{sample}/{sample}fileAligned.fasta",
+        data="results/mafft/{sample}/{sample}fileAligned.fasta"
+    output:
+        "results/mafft/{sample}/{sample}fileAligned.txt",
+        "results/mafft/{sample}/{sample}fileAligned.fasta.ckp",
+        "results/mafft/{sample}/{sample}fileAligned.fasta.log",
+        "results/mafft/{sample}/{sample}fileAligned.fasta.out",
+        "results/mafft/{sample}/{sample}fileAligned.fasta.topos",
+        "results/mafft/{sample}/{sample}fileAligned.fasta.tree"
+    conda:
+        "envs/yamlfile.yaml"
+    shell:
+        "modeltest-ng -i {input.data} -t ml > {output}"  
 
-# rule best_AICc_model_clustal_omega:
-#     input:
-#         "results/clustal_omega/{sample}/{sample}fileAligned.fasta"
-#     output:
-#         "results/clustal_omega/{sample}/{sample}fileAligned.txt",
-#         "results/clustal_omega/{sample}/{sample}fileAligned.fasta.ckp",
-#         "results/clustal_omega/{sample}/{sample}fileAligned.fasta.log",
-#         "results/clustal_omega/{sample}/{sample}fileAligned.fasta.out",
-#         "results/clustal_omega/{sample}/{sample}fileAligned.fasta.topos",
-#         "results/clustal_omega/{sample}/{sample}fileAligned.fasta.tree"
-#     conda:
-#         "envs/yamlfile.yaml"
-#     shell:
-#         "modeltest-ng -i {input} -t ml > {output}"
+rule best_AICc_model_clustal_omega:
+    input:
+        previous="results/mafft/{sample}/{sample}fileAligned.txt",
+        data="results/clustal_omega/{sample}/{sample}fileAligned.fasta"
+    output:
+        "results/clustal_omega/{sample}/{sample}fileAligned.txt",
+        "results/clustal_omega/{sample}/{sample}fileAligned.fasta.ckp",
+        "results/clustal_omega/{sample}/{sample}fileAligned.fasta.log",
+        "results/clustal_omega/{sample}/{sample}fileAligned.fasta.out",
+        "results/clustal_omega/{sample}/{sample}fileAligned.fasta.topos",
+        "results/clustal_omega/{sample}/{sample}fileAligned.fasta.tree"
+    conda:
+        "envs/yamlfile.yaml"
+    shell:
+        "modeltest-ng -i {input.data} -t ml > {output}"
 
-# rule best_AICc_model_Muscle:
-#     input:
-#         "results/Muscle/{sample}/{sample}fileAligned.fasta"
-#     output:
-#         "results/Muscle/{sample}/{sample}fileAligned.txt",
-#         "results/Muscle/{sample}/{sample}fileAligned.fasta.ckp",
-#         "results/Muscle/{sample}/{sample}fileAligned.fasta.log",
-#         "results/Muscle/{sample}/{sample}fileAligned.fasta.out",
-#         "results/Muscle/{sample}/{sample}fileAligned.fasta.topos",
-#         "results/Muscle/{sample}/{sample}fileAligned.fasta.tree"
-#     conda:
-#         "envs/yamlfile.yaml"
-#     shell:
-#         "modeltest-ng -i {input} -t ml > {output}"
+rule best_AICc_model_Muscle:
+    input:
+        previous="results/clustal_omega/{sample}/{sample}fileAligned.txt",
+        data="results/Muscle/{sample}/{sample}fileAligned.fasta"
+    output:
+        "results/Muscle/{sample}/{sample}fileAligned.txt",
+        "results/Muscle/{sample}/{sample}fileAligned.fasta.ckp",
+        "results/Muscle/{sample}/{sample}fileAligned.fasta.log",
+        "results/Muscle/{sample}/{sample}fileAligned.fasta.out",
+        "results/Muscle/{sample}/{sample}fileAligned.fasta.topos",
+        "results/Muscle/{sample}/{sample}fileAligned.fasta.tree"
+    conda:
+        "envs/yamlfile.yaml"
+    shell:
+        "modeltest-ng -i {input.data} -t ml > {output}"
 
 # # Obtaining best AICc model rules
 # rule obtain_best_AICc_model_mafft:

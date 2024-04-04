@@ -154,6 +154,7 @@ rule obtain_best_AICc_model_Muscle:
 # Maximum likelihood tree generation rules
 rule maximum_likelihood_tree_step_1_mafft:
     input:
+        previous="results/Muscle/{sample}/{sample}Model.txt"
         model="results/mafft/{sample}/{sample}Model.txt",
         msa="results/mafft/{sample}/{sample}fileAligned.fasta"
     output:
@@ -174,6 +175,7 @@ rule maximum_likelihood_tree_step_1_mafft:
 
 rule maximum_likelihood_tree_step_1_clustal_omega:
     input:
+        previous="results/mafft/{sample}/{sample}fileAligned.fasta.raxml.bestTree",
         model="results/clustal_omega/{sample}/{sample}Model.txt",
         msa="results/clustal_omega/{sample}/{sample}fileAligned.fasta"
     output:
@@ -194,6 +196,7 @@ rule maximum_likelihood_tree_step_1_clustal_omega:
 
 rule maximum_likelihood_tree_step_1_Muscle:
     input:
+        previous="results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.bestTree",
         model="results/Muscle/{sample}/{sample}Model.txt",
         msa="results/Muscle/{sample}/{sample}fileAligned.fasta"
     output:
@@ -212,206 +215,218 @@ rule maximum_likelihood_tree_step_1_Muscle:
         raxml-ng --msa {input.msa} --model $model --threads {params.threads} --seed 333 --tree pars{{100}},rand{{100}}
         """
 
-# # Bootstrap replicates generation rules
-# rule maximum_likelihood_tree_step_2_mafft:
-#     input:
-#         "results/mafft/{sample}/{sample}Model.txt",
-#         "results/mafft/{sample}/{sample}fileAligned.fasta"
-#     output:
-#         "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.bootstraps",
-#         "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.log",
-#         "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.rba"
-#     conda:
-#         "envs/yamlfile.yaml"
-#     params:
-#         threads=multiprocessing.cpu_count(),
-#         bootstrap_trees=1000
-#     shell: 
-#         """
-#         model=$(cat {input[0]})
-#         raxml-ng --bootstrap --msa {input[1]} --model $model --threads {params.threads} --seed 333 --bs-trees {params.bootstrap_trees}
-#         """
+# Bootstrap replicates generation rules
+rule maximum_likelihood_tree_step_2_mafft:
+    input:
+        previous="results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.bestTree",
+        model="results/mafft/{sample}/{sample}Model.txt",
+        msa="results/mafft/{sample}/{sample}fileAligned.fasta"
+    output:
+        "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.bootstraps",
+        "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.log",
+        "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.rba"
+    conda:
+        "envs/yamlfile.yaml"
+    params:
+        threads=multiprocessing.cpu_count(),
+        bootstrap_trees=1000
+    shell: 
+        """
+        model=$(cat {input.model})
+        raxml-ng --bootstrap --msa {input.msa} --model $model --threads {params.threads} --seed 333 --bs-trees {params.bootstrap_trees}
+        """
 
-# rule maximum_likelihood_tree_step_2_clustal_omega:
-#     input:
-#         "results/clustal_omega/{sample}/{sample}Model.txt",
-#         "results/clustal_omega/{sample}/{sample}fileAligned.fasta"
-#     output:
-#         "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.bootstraps",
-#         "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.log",
-#         "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.rba"
-#     conda:
-#         "envs/yamlfile.yaml"
-#     params:
-#         threads=multiprocessing.cpu_count(),
-#         bootstrap_trees=1000
-#     shell: 
-#         """
-#         model=$(cat {input[0]})
-#         raxml-ng --bootstrap --msa {input[1]} --model $model --threads {params.threads} --seed 333 --bs-trees {params.bootstrap_trees}
-#         """
+rule maximum_likelihood_tree_step_2_clustal_omega:
+    input:
+        previous="results/mafft/{sample}/{sample}fileAligned.fasta.raxml.bootstraps",
+        model="results/clustal_omega/{sample}/{sample}Model.txt",
+        msa="results/clustal_omega/{sample}/{sample}fileAligned.fasta"
+    output:
+        "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.bootstraps",
+        "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.log",
+        "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.rba"
+    conda:
+        "envs/yamlfile.yaml"
+    params:
+        threads=multiprocessing.cpu_count(),
+        bootstrap_trees=1000
+    shell: 
+        """
+        model=$(cat {input.model})
+        raxml-ng --bootstrap --msa {input.msa} --model $model --threads {params.threads} --seed 333 --bs-trees {params.bootstrap_trees}
+        """
 
-# rule maximum_likelihood_tree_step_2_Muscle:
-#     input:
-#         "results/Muscle/{sample}/{sample}Model.txt",
-#         "results/Muscle/{sample}/{sample}fileAligned.fasta"
-#     output:
-#         "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.bootstraps",
-#         "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.log",
-#         "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.rba"
-#     conda:
-#         "envs/yamlfile.yaml"
-#     params:
-#         threads=multiprocessing.cpu_count(),
-#         bootstrap_trees=1000
-#     shell: 
-#         """
-#         model=$(cat {input[0]})
-#         raxml-ng --bootstrap --msa {input[1]} --model $model --threads {params.threads} --seed 333 --bs-trees {params.bootstrap_trees}
-#         """
-# # Support values calculation rules
-# rule maximum_likelihood_tree_step_3_mafft:
-#     input:
-#         "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.bestTree",
-#         "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.bootstraps"
-#     output:
-#         "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.support",
-#         "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.log"
-#     conda:
-#         "envs/yamlfile.yaml"
-#     params:
-#         threads=multiprocessing.cpu_count()
-#     shell:
-#         "raxml-ng --support --tree {input[0]} --bs-trees {input[1]} --threads {params.threads}"
+rule maximum_likelihood_tree_step_2_Muscle:
+    input:
+        previous="results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.bootstraps",
+        model="results/Muscle/{sample}/{sample}Model.txt",
+        msa="results/Muscle/{sample}/{sample}fileAligned.fasta"
+    output:
+        "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.bootstraps",
+        "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.log",
+        "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.rba"
+    conda:
+        "envs/yamlfile.yaml"
+    params:
+        threads=multiprocessing.cpu_count(),
+        bootstrap_trees=1000
+    shell: 
+        """
+        model=$(cat {input.model})
+        raxml-ng --bootstrap --msa {input.msa} --model $model --threads {params.threads} --seed 333 --bs-trees {params.bootstrap_trees}
+        """
+# Support values calculation rules
+rule maximum_likelihood_tree_step_3_mafft:
+    input:
+        previous="results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.bootstraps",
+        tree="results/mafft/{sample}/{sample}fileAligned.fasta.raxml.bestTree",
+        bootstraps="results/mafft/{sample}/{sample}fileAligned.fasta.raxml.bootstraps"
+    output:
+        "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.support",
+        "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.log"
+    conda:
+        "envs/yamlfile.yaml"
+    params:
+        threads=multiprocessing.cpu_count()
+    shell:
+        "raxml-ng --support --tree {input.tree} --bs-trees {input.bootstraps} --threads {params.threads}"
         
-# rule maximum_likelihood_tree_step_3_clustal_omega:
-#     input:
-#         "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.bestTree",
-#         "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.bootstraps"
-#     output:
-#         "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.support",
-#         "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.log"
-#     conda:
-#         "envs/yamlfile.yaml"
-#     params:
-#         threads=multiprocessing.cpu_count()
-#     shell:
-#         "raxml-ng --support --tree {input[0]} --bs-trees {input[1]} --threads {params.threads}"
+rule maximum_likelihood_tree_step_3_clustal_omega:
+    input:
+        previous="results/mafft/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.support",
+        tree="results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.bestTree",
+        bootstraps="results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.bootstraps"
+    output:
+        "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.support",
+        "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.log"
+    conda:
+        "envs/yamlfile.yaml"
+    params:
+        threads=multiprocessing.cpu_count()
+    shell:
+        "raxml-ng --support --tree {input.tree} --bs-trees {input.bootstraps} --threads {params.threads}"
 
-# rule maximum_likelihood_tree_step_3_Muscle:
-#     input:
-#         "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.bestTree",
-#         "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.bootstraps"
-#     output:
-#         "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.support",
-#         "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.log"
-#     conda:
-#         "envs/yamlfile.yaml"
-#     params:
-#         threads=multiprocessing.cpu_count()
-#     shell:
-#         "raxml-ng --support --tree {input[0]} --bs-trees {input[1]} --threads {params.threads}"
+rule maximum_likelihood_tree_step_3_Muscle:
+    input:
+        previous="results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.support",
+        tree="results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.bestTree",
+        bootstraps="results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.bootstraps"
+    output:
+        "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.support",
+        "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.log"
+    conda:
+        "envs/yamlfile.yaml"
+    params:
+        threads=multiprocessing.cpu_count()
+    shell:
+        "raxml-ng --support --tree {input.tree} --bs-trees {input.bootstraps} --threads {params.threads}"
 
-# # Tree building rules
-# rule build_tree_mafft:
-#     input:
-#         input="results/mafft/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.support"
-#     output:
-#         output="results/mafft/{sample}/tree/{sample}Tree.svg"
-#     run:
-#         TreeGenerator.TreeGenerator(input.input, output.output)
+# Tree building rules
+rule build_tree_mafft:
+    input:
+        previous="results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.support",
+        tree="results/mafft/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.support"
+    output:
+        img="results/mafft/{sample}/tree/{sample}Tree.svg"
+    run:
+        TreeGenerator.TreeGenerator(input.tree, output.img)
 
-# rule build_clustal_omega:
-#     input:
-#         input="results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.support"
-#     output:
-#         output="results/clustal_omega/{sample}/tree/{sample}Tree.svg"
-#     run:
-#         TreeGenerator.TreeGenerator(input.input, output.output)
+rule build_clustal_omega:
+    input:
+        previous="results/mafft/{sample}/tree/{sample}Tree.svg"
+        tree="results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.support"
+    output:
+        img="results/clustal_omega/{sample}/tree/{sample}Tree.svg"
+    run:
+        TreeGenerator.TreeGenerator(input.tree, output.img)
 
-# rule build_Muscle:
-#     input:
-#         input="results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.support"
-#     output:
-#         output="results/Muscle/{sample}/tree/{sample}Tree.svg"
-#     run:
-#         TreeGenerator.TreeGenerator(input.input, output.output)
+rule build_Muscle:
+    input:
+        previous="results/clustal_omega/{sample}/tree/{sample}Tree.svg"
+        tree="results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.support"
+    output:
+        img="results/Muscle/{sample}/tree/{sample}Tree.svg"
+    run:
+        TreeGenerator.TreeGenerator(input.tree, output.img)
 
-# # Merging all .supports files into one
-# rule merge_trees:
-#     input:
-#         "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.support",
-#         "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.support",
-#         "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.support"
-#     output:
-#         output="iqtree/{sample}/{sample}_combined_trees.trees"
-#     shell:
-#         "cat {input} > {output}"
+# Merging all .supports files into one
+rule merge_trees:
+    input:
+        "results/mafft/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.support",
+        "results/clustal_omega/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.support",
+        "results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.bestTree.raxml.support"
+    output:
+        output="iqtree/{sample}/{sample}_combined_trees.trees"
+    shell:
+        "cat {input} > {output}"
 
-# # IQTree Test
+# IQTree Test
 
-# rule IQTree_Mafft:
-#     input:
-#         align="results/mafft/{sample}/{sample}fileAligned.fasta",
-#         tree="iqtree/{sample}/{sample}_combined_trees.trees"
-#     output:
-#         ckp="iqtree/{sample}/mafft/mafft.ckp.gz",
-#         iqtree="iqtree/{sample}/mafft/mafft.iqtree",
-#         log="iqtree/{sample}/mafft/mafft.log",
-#         model="iqtree/{sample}/mafft/mafft.model.gz",
-#         treefile="iqtree/{sample}/mafft/mafft.treefile",
-#         trees="iqtree/{sample}/mafft/mafft.trees"
-#     shell:
-#         """
-#         iqtree -s {input.align} --trees {input.tree} --test-weight --test-au -n 0 --test 10000 -pre mafft
-#         mv mafft.ckp.gz {output.ckp}
-#         mv mafft.iqtree {output.iqtree}
-#         mv mafft.log {output.log}
-#         mv mafft.model.gz {output.model}
-#         mv mafft.treefile {output.treefile}
-#         mv mafft.trees {output.trees}
-#         """
+rule IQTree_Mafft:
+    input:
+        previous="iqtree/{sample}/{sample}_combined_trees.trees",
+        align="results/mafft/{sample}/{sample}fileAligned.fasta",
+        tree="iqtree/{sample}/{sample}_combined_trees.trees"
+    output:
+        ckp="iqtree/{sample}/mafft/mafft.ckp.gz",
+        iqtree="iqtree/{sample}/mafft/mafft.iqtree",
+        log="iqtree/{sample}/mafft/mafft.log",
+        model="iqtree/{sample}/mafft/mafft.model.gz",
+        treefile="iqtree/{sample}/mafft/mafft.treefile",
+        trees="iqtree/{sample}/mafft/mafft.trees"
+    shell:
+        """
+        iqtree -s {input.align} --trees {input.tree} --test-weight --test-au -n 0 --test 10000 -pre mafft
+        mv mafft.ckp.gz {output.ckp}
+        mv mafft.iqtree {output.iqtree}
+        mv mafft.log {output.log}
+        mv mafft.model.gz {output.model}
+        mv mafft.treefile {output.treefile}
+        mv mafft.trees {output.trees}
+        """
 
-# rule IQTree_Clustal_Omega:
-#     input:
-#         align="results/clustal_omega/{sample}/{sample}fileAligned.fasta",
-#         tree="iqtree/{sample}/{sample}_combined_trees.trees"
-#     output:
-#         ckp="iqtree/{sample}/clustal_omega/clustal_omega.ckp.gz",
-#         iqtree="iqtree/{sample}/clustal_omega/clustal_omega.iqtree",
-#         log="iqtree/{sample}/clustal_omega/clustal_omega.log",
-#         model="iqtree/{sample}/clustal_omega/clustal_omega.model.gz",
-#         treefile="iqtree/{sample}/clustal_omega/clustal_omega.treefile",
-#         trees="iqtree/{sample}/clustal_omega/clustal_omega.trees"
-#     shell:
-#         """
-#         iqtree -s {input.align} --trees {input.tree} --test-weight --test-au -n 0 --test 10000 -pre clustal_omega
-#         mv clustal_omega.ckp.gz {output.ckp}
-#         mv clustal_omega.iqtree {output.iqtree}
-#         mv clustal_omega.log {output.log}
-#         mv clustal_omega.model.gz {output.model}
-#         mv clustal_omega.treefile {output.treefile}
-#         mv clustal_omega.trees {output.trees}
-#         """
+rule IQTree_Clustal_Omega:
+    input:
+        previous="iqtree/{sample}/mafft/mafft.ckp.gz",
+        align="results/clustal_omega/{sample}/{sample}fileAligned.fasta",
+        tree="iqtree/{sample}/{sample}_combined_trees.trees"
+    output:
+        ckp="iqtree/{sample}/clustal_omega/clustal_omega.ckp.gz",
+        iqtree="iqtree/{sample}/clustal_omega/clustal_omega.iqtree",
+        log="iqtree/{sample}/clustal_omega/clustal_omega.log",
+        model="iqtree/{sample}/clustal_omega/clustal_omega.model.gz",
+        treefile="iqtree/{sample}/clustal_omega/clustal_omega.treefile",
+        trees="iqtree/{sample}/clustal_omega/clustal_omega.trees"
+    shell:
+        """
+        iqtree -s {input.align} --trees {input.tree} --test-weight --test-au -n 0 --test 10000 -pre clustal_omega
+        mv clustal_omega.ckp.gz {output.ckp}
+        mv clustal_omega.iqtree {output.iqtree}
+        mv clustal_omega.log {output.log}
+        mv clustal_omega.model.gz {output.model}
+        mv clustal_omega.treefile {output.treefile}
+        mv clustal_omega.trees {output.trees}
+        """
 
-# rule IQTree_Muscle:
-#     input:
-#         align="results/Muscle/{sample}/{sample}fileAligned.fasta",
-#         tree="iqtree/{sample}/{sample}_combined_trees.trees"
-#     output:
-#         ckp="iqtree/{sample}/Muscle/Muscle.ckp.gz",
-#         iqtree="iqtree/{sample}/Muscle/Muscle.iqtree",
-#         log="iqtree/{sample}/Muscle/Muscle.log",
-#         model="iqtree/{sample}/Muscle/Muscle.model.gz",
-#         treefile="iqtree/{sample}/Muscle/Muscle.treefile",
-#         trees="iqtree/{sample}/Muscle/Muscle.trees"
-#     shell:
-#         """
-#         iqtree -s {input.align} --trees {input.tree} --test-weight --test-au -n 0 --test 10000 -pre Muscle
-#         mv Muscle.ckp.gz {output.ckp}
-#         mv Muscle.iqtree {output.iqtree}
-#         mv Muscle.log {output.log}
-#         mv Muscle.model.gz {output.model}
-#         mv Muscle.treefile {output.treefile}
-#         mv Muscle.trees {output.trees}
-#         """
+rule IQTree_Muscle:
+    input:
+        previous="iqtree/{sample}/clustal_omega/clustal_omega.ckp.gz",
+        align="results/Muscle/{sample}/{sample}fileAligned.fasta",
+        tree="iqtree/{sample}/{sample}_combined_trees.trees"
+    output:
+        ckp="iqtree/{sample}/Muscle/Muscle.ckp.gz",
+        iqtree="iqtree/{sample}/Muscle/Muscle.iqtree",
+        log="iqtree/{sample}/Muscle/Muscle.log",
+        model="iqtree/{sample}/Muscle/Muscle.model.gz",
+        treefile="iqtree/{sample}/Muscle/Muscle.treefile",
+        trees="iqtree/{sample}/Muscle/Muscle.trees"
+    shell:
+        """
+        iqtree -s {input.align} --trees {input.tree} --test-weight --test-au -n 0 --test 10000 -pre Muscle
+        mv Muscle.ckp.gz {output.ckp}
+        mv Muscle.iqtree {output.iqtree}
+        mv Muscle.log {output.log}
+        mv Muscle.model.gz {output.model}
+        mv Muscle.treefile {output.treefile}
+        mv Muscle.trees {output.trees}
+        """

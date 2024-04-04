@@ -153,7 +153,7 @@ rule obtain_best_AICc_model_Muscle:
 # Maximum likelihood tree generation rules
 rule maximum_likelihood_tree_step_1_mafft:
     input:
-        previous="results/Muscle/{sample}/{sample}Model.txt"
+        previous="results/Muscle/{sample}/{sample}Model.txt",
         model="results/mafft/{sample}/{sample}Model.txt",
         msa="results/mafft/{sample}/{sample}fileAligned.fasta"
     output:

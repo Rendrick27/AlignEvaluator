@@ -123,30 +123,33 @@ rule best_AICc_model_Muscle:
     shell:
         "modeltest-ng -i {input.data} -t ml > {output}"
 
-# # Obtaining best AICc model rules
-# rule obtain_best_AICc_model_mafft:
-#     input:
-#         "results/mafft/{sample}/{sample}fileAligned.txt"
-#     output:
-#         "results/mafft/{sample}/{sample}Model.txt"
-#     shell:
-#         "grep 'Best model according to AICc' -A 2 {input[0]} | tail -n 1 | sed 's/^.* //' > {output[0]}"
+# Obtaining best AICc model rules
+rule obtain_best_AICc_model_mafft:
+    input:
+        previous="results/Muscle/{sample}/{sample}fileAligned.txt",
+        data="results/mafft/{sample}/{sample}fileAligned.txt"
+    output:
+        "results/mafft/{sample}/{sample}Model.txt"
+    shell:
+        "grep 'Best model according to AICc' -A 2 {input.data} | tail -n 1 | sed 's/^.* //' > {output}"
 
-# rule obtain_best_AICc_model_clustal_omega:
-#     input:
-#         "results/clustal_omega/{sample}/{sample}fileAligned.txt"
-#     output:
-#         "results/clustal_omega/{sample}/{sample}Model.txt"
-#     shell:
-#         "grep 'Best model according to AICc' -A 2 {input[0]} | tail -n 1 | sed 's/^.* //' > {output[0]}"
+rule obtain_best_AICc_model_clustal_omega:
+    input:
+        previous="results/mafft/{sample}/{sample}Model.txt",
+        data="results/clustal_omega/{sample}/{sample}fileAligned.txt"
+    output:
+        "results/clustal_omega/{sample}/{sample}Model.txt"
+    shell:
+        "grep 'Best model according to AICc' -A 2 {input.data} | tail -n 1 | sed 's/^.* //' > {output}"
 
-# rule obtain_best_AICc_model_Muscle:
-#     input:
-#         "results/Muscle/{sample}/{sample}fileAligned.txt"
-#     output:
-#         "results/Muscle/{sample}/{sample}Model.txt"
-#     shell:
-#         "grep 'Best model according to AICc' -A 2 {input[0]} | tail -n 1 | sed 's/^.* //' > {output[0]}"
+rule obtain_best_AICc_model_Muscle:
+    input:
+        previous="results/clustal_omega/{sample}/{sample}Model.txt",
+        data="results/Muscle/{sample}/{sample}fileAligned.txt"
+    output:
+        "results/Muscle/{sample}/{sample}Model.txt"
+    shell:
+        "grep 'Best model according to AICc' -A 2 {input.data} | tail -n 1 | sed 's/^.* //' > {output}"
 
 # # Maximum likelihood tree generation rules
 # rule maximum_likelihood_tree_step_1_mafft:

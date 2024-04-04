@@ -9,7 +9,7 @@ sample_names = [os.path.splitext(os.path.basename(file))[0] for file in glob.glo
 # Define rule to generate all desired outputs
 rule all:
     input:
-        expand("results/Muscle/{sample}/{sample}fileAligned.txt", sample=sample_names)
+        expand("results/Muscle/{sample}/{sample}fileAligned.fasta.raxml.bestTree", sample=sample_names)
         # expand("results/mafft/{sample}/tree/{sample}Tree.svg", sample=sample_names),    
         # expand("results/clustal_omega/{sample}/tree/{sample}Tree.svg", sample=sample_names),
         # expand("results/Muscle/{sample}/tree/{sample}Tree.svg", sample=sample_names),

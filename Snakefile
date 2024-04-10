@@ -169,7 +169,7 @@ rule maximum_likelihood_tree_step_1_mafft:
     shell:
         """
         model=$(cat {input.model})
-        raxml-ng --msa {input.msa} --model $model --threads {params.threads} --seed 333 --tree pars{{100}},rand{{100}}
+        raxml-ng --msa {input.msa} --model $model --threads {params.threads} --seed 333 --tree pars{{100}},rand{{100}} --force perf_threads
         """
 
 rule maximum_likelihood_tree_step_1_clustal_omega:
@@ -190,7 +190,7 @@ rule maximum_likelihood_tree_step_1_clustal_omega:
     shell:
         """
         model=$(cat {input.model})
-        raxml-ng --msa {input.msa} --model $model --threads {params.threads} --seed 333 --tree pars{{100}},rand{{100}}
+        raxml-ng --msa {input.msa} --model $model --threads {params.threads} --seed 333 --tree pars{{100}},rand{{100}} --force perf_threads
         """
 
 rule maximum_likelihood_tree_step_1_Muscle:
@@ -211,7 +211,7 @@ rule maximum_likelihood_tree_step_1_Muscle:
     shell:
         """
         model=$(cat {input.model})
-        raxml-ng --msa {input.msa} --model $model --threads {params.threads} --seed 333 --tree pars{{100}},rand{{100}}
+        raxml-ng --msa {input.msa} --model $model --threads {params.threads} --seed 333 --tree pars{{100}},rand{{100}} --force perf_threads
         """
 
 # Bootstrap replicates generation rules
@@ -232,7 +232,7 @@ rule maximum_likelihood_tree_step_2_mafft:
     shell: 
         """
         model=$(cat {input.model})
-        raxml-ng --bootstrap --msa {input.msa} --model $model --threads {params.threads} --seed 333 --bs-trees {params.bootstrap_trees}
+        raxml-ng --bootstrap --msa {input.msa} --model $model --threads {params.threads} --seed 333 --bs-trees {params.bootstrap_trees} --force perf_threads
         """
 
 rule maximum_likelihood_tree_step_2_clustal_omega:
@@ -252,7 +252,7 @@ rule maximum_likelihood_tree_step_2_clustal_omega:
     shell: 
         """
         model=$(cat {input.model})
-        raxml-ng --bootstrap --msa {input.msa} --model $model --threads {params.threads} --seed 333 --bs-trees {params.bootstrap_trees}
+        raxml-ng --bootstrap --msa {input.msa} --model $model --threads {params.threads} --seed 333 --bs-trees {params.bootstrap_trees} --force perf_threads
         """
 
 rule maximum_likelihood_tree_step_2_Muscle:
@@ -272,7 +272,7 @@ rule maximum_likelihood_tree_step_2_Muscle:
     shell: 
         """
         model=$(cat {input.model})
-        raxml-ng --bootstrap --msa {input.msa} --model $model --threads {params.threads} --seed 333 --bs-trees {params.bootstrap_trees}
+        raxml-ng --bootstrap --msa {input.msa} --model $model --threads {params.threads} --seed 333 --bs-trees {params.bootstrap_trees} --force perf_threads
         """
 # Support values calculation rules
 rule maximum_likelihood_tree_step_3_mafft:
@@ -288,7 +288,7 @@ rule maximum_likelihood_tree_step_3_mafft:
     params:
         threads=multiprocessing.cpu_count()
     shell:
-        "raxml-ng --support --tree {input.tree} --bs-trees {input.bootstraps} --threads {params.threads}"
+        "raxml-ng --support --tree {input.tree} --bs-trees {input.bootstraps} --threads {params.threads} --force perf_threads" 
         
 rule maximum_likelihood_tree_step_3_clustal_omega:
     input:
@@ -303,7 +303,7 @@ rule maximum_likelihood_tree_step_3_clustal_omega:
     params:
         threads=multiprocessing.cpu_count()
     shell:
-        "raxml-ng --support --tree {input.tree} --bs-trees {input.bootstraps} --threads {params.threads}"
+        "raxml-ng --support --tree {input.tree} --bs-trees {input.bootstraps} --threads {params.threads} --force perf_threads"
 
 rule maximum_likelihood_tree_step_3_Muscle:
     input:
@@ -318,7 +318,7 @@ rule maximum_likelihood_tree_step_3_Muscle:
     params:
         threads=multiprocessing.cpu_count()
     shell:
-        "raxml-ng --support --tree {input.tree} --bs-trees {input.bootstraps} --threads {params.threads}"
+        "raxml-ng --support --tree {input.tree} --bs-trees {input.bootstraps} --threads {params.threads} --force perf_threads"
 
 # Tree building rules
 rule build_tree_mafft:
